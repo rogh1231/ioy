@@ -45,14 +45,6 @@
       padding: 20px;
     }
 
-    .signature {
-      text-align: center;
-      color: #6b7280;
-      font-size: 10px;
-      margin-top: 2px;
-      line-height: 1.2;
-    }
-
     h1 {
       font-size: 24px;
       margin: 0 0 18px;
@@ -107,7 +99,7 @@
       background: white;
       color: var(--text);
       border: 1px solid var(--line);
-      margin-top: 4px;
+      margin-top: 16px;
     }
 
     .panel {
@@ -187,6 +179,22 @@
       line-height: 1.6;
     }
 
+    .result-footer {
+      margin-top: 8px;
+    }
+
+    .back-button {
+      margin-top: 0;
+    }
+
+    .signature {
+      text-align: center;
+      color: #6b7280;
+      font-size: 10px;
+      margin-top: 6px;
+      line-height: 1.2;
+    }
+
     .hidden { display: none; }
 
     @media (max-width: 380px) {
@@ -255,7 +263,10 @@
           <div class="meta" id="godComment"></div>
         </div>
 
-        <button id="backBtn" class="secondary">戻る</button>
+        <div class="result-footer">
+          <button id="backBtn" class="secondary back-button">戻る</button>
+          <div class="signature">created by God-RO for IOY</div>
+        </div>
       </div>
     </div>
   </div>
@@ -370,23 +381,6 @@
       const averageProfit = (d - totalInvestment) / people;
       const totalProfit = d - totalInvestment;
 
-      let godComment = '';
-      
-      if (averageProfit < -30000) {
-        godComment = `${Math.round(averageProfit)}円のボロ負けです。神は全てを赦します。`;
-      } else if (averageProfit < -15000) {
-        godComment = `${Math.round(averageProfit)}円の負けです。日頃の行いを見直しましょう。神への奉納で徳を積める可能性があります。`;
-      } else if (averageProfit < 0) {
-        godComment = `${Math.round(averageProfit)}円の微負けです。どんまいでした。`;
-      } else if (averageProfit < 15000) {
-        godComment = `${Math.round(averageProfit)}円の微勝ちです。おめでとうございます。`;
-      } else if (averageProfit < 30000) {
-        godComment = `${Math.round(averageProfit)}円の勝ちです。日頃の行いの賜物です。叙々苑おごってください。`;
-      } else {
-        godComment = `${Math.round(averageProfit)}円の大勝です。引き続き神への感謝を忘れずに、叙々苑に加え、奉納を行いましょう。`;
-      }
-      
-      // 各人の最終的な配分額（合計は換金総額 d）
       const rawTargets = members.map(m => ({
         ...m,
         targetRaw: d / people + m.investment - averageInvestment
@@ -408,25 +402,19 @@
         amount: roundedTargets[idx]
       }));
 
-      // マイナス→プラスへの支払い一覧
       const transfers = calculateTransfers(targetAmounts);
 
       const displayData = targetAmounts.map(person => {
         const incoming = transfers.filter(t => t.to === person.name);
         const outgoing = transfers.filter(t => t.from === person.name);
         const incomingTotal = incoming.reduce((sum, t) => sum + t.amount, 0);
-        const outgoingTotal = outgoing.reduce((sum, t) => sum + t.amount, 0);
 
-        // プラスの人だけ、換金からの受取を表示
-        // 「換金からの受取 + 他人からの受取 = 受け取り合計」を一致させる
         const exchangeReceive = person.amount > 0 ? person.amount - incomingTotal : 0;
 
         return {
           ...person,
           incoming,
           outgoing,
-          incomingTotal,
-          outgoingTotal,
           exchangeReceive
         };
       });
@@ -475,6 +463,22 @@
         `;
       }).join('');
 
+      let godComment = '';
+
+      if (averageProfit < -30000) {
+        godComment = `${Math.round(averageProfit)}円のボロ負けです。神は全てを赦します。`;
+      } else if (averageProfit < -15000) {
+        godComment = `${Math.round(averageProfit)}円の負けです。日頃の行いを見直しましょう。神への奉納で徳を積むのがお勧めです。`;
+      } else if (averageProfit < 0) {
+        godComment = `${Math.round(averageProfit)}円の微負けです。どんまいでした。`;
+      } else if (averageProfit < 15000) {
+        godComment = `${Math.round(averageProfit)}円の微勝ちです。おめでとうございます。`;
+      } else if (averageProfit < 30000) {
+        godComment = `${Math.round(averageProfit)}円の勝ちです。日頃の行いの賜物です。叙々苑おごってください。`;
+      } else {
+        godComment = `${Math.round(averageProfit)}円の大勝です。引き続き神への感謝を忘れずに、叙々苑に加え、収入の1割を奉納してください。`;
+      }
+
       summary.innerHTML = `
         <div>人数: ${people}人</div>
         <div>投資額合計: ${formatYen(totalInvestment)}</div>
@@ -498,6 +502,5 @@
       inputScreen.classList.remove('hidden');
     });
   </script>
-  <div class="signature">created by RO for IOY</div>
 </body>
 </html>
