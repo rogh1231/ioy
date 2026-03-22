@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>ノリ打ち分配アプリ</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --sub: #6b7280;
+      --line: #e5e7eb;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --muted: #f3f4f6;
+      --danger: #dc2626;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .wrap {
+      min-height: 100vh;
+      padding: 20px 14px 28px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 460px;
+      background: var(--card);
+      border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin: 0 0 18px;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      font-size: 16px;
+      background: #fff;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 16px;
+      padding: 15px 16px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.15s ease;
+    }
+
+    .primary {
+      margin-top: 8px;
+      background: var(--primary);
+      color: white;
+    }
+
+    .primary:hover { background: var(--primary-dark); }
+
+    .secondary {
+      background: white;
+      color: var(--text);
+      border: 1px solid var(--line);
+      margin-top: 16px;
+    }
+
+    .panel {
+      margin-top: 16px;
+      background: var(--muted);
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .meta {
+      display: grid;
+      gap: 6px;
+      font-size: 14px;
+      color: var(--sub);
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .result-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .result-row:first-child {
+      padding-top: 0;
+    }
+
+    .result-name {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .result-sub {
+      font-size: 12px;
+      color: var(--sub);
+    }
+
+    .result-value {
+      font-size: 20px;
+      font-weight: 800;
+      text-align: right;
+      word-break: break-all;
+    }
+
+    .error {
+      margin-top: 12px;
+      color: var(--danger);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .note {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--sub);
+      line-height: 1.6;
+    }
+
+    .hidden { display: none; }
+
+    @media (max-width: 380px) {
+      .card { padding: 16px; }
+      h1 { font-size: 21px; }
+      .result-value { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div id="inputScreen">
+        <h1>ノリ打ち分配アプリ(※他の人に貸した金額は自分の投資額に加算してね)</h1>
+
+        <div class="field">
+          <label for="a">I君投資額</label>
+          <input id="a" type="number" inputmode="numeric" min="0" step="1" placeholder="未入力なら計算対象外" />
+        </div>
+
+        <div class="field">
+          <label for="b">O君投資額</label>
+          <input id="b" type="number" inputmode="numeric" min="0" step="1" placeholder="未入力なら計算対象外" />
+        </div>
+
+        <div class="field">
+          <label for="c">Y君投資額</label>
+          <input id="c" type="number" inputmode="numeric" min="0" step="1" placeholder="未入力なら計算対象外" />
+        </div>
+
+        <div class="field">
+          <label for="d">賞金総額</label>
+          <input id="d" type="number" inputmode="numeric" min="0" step="1" placeholder="例: 21000" />
+        </div>
+
+        <button id="calcBtn" class="primary">分配計算実行</button>
+        <div id="error" class="error hidden"></div>
+
+        <div class="panel">
+          <div class="panel-title">計算ルール</div>
+          <div class="meta">
+            <div>入力された人だけを対象に計算</div>
+            <div>平均投資額 = 投資額合計 / 人数</div>
+            <div>平均賞金 = 賞金総額 / 人数</div>
+            <div>各人の賞金 = 平均賞金 - (平均投資額 - 各人投資額)</div>
+          </div>
+        </div>
+
+        <div class="note">
+          2人でも3人でも計算できます。投資額が未入力の人は自動で除外されます。
+        </div>
+      </div>
+
+      <div id="resultScreen" class="hidden">
+        <h1>計算結果</h1>
+
+        <div class="panel" id="resultPanel"></div>
+
+        <div class="panel">
+          <div class="panel-title">集計</div>
+          <div class="meta" id="summary"></div>
+        </div>
+
+        <button id="backBtn" class="secondary">戻る</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const aInput = document.getElementById('a');
+    const bInput = document.getElementById('b');
+    const cInput = document.getElementById('c');
+    const dInput = document.getElementById('d');
+    const calcBtn = document.getElementById('calcBtn');
+    const backBtn = document.getElementById('backBtn');
+    const errorBox = document.getElementById('error');
+    const inputScreen = document.getElementById('inputScreen');
+    const resultScreen = document.getElementById('resultScreen');
+    const resultPanel = document.getElementById('resultPanel');
+    const summary = document.getElementById('summary');
+
+    function formatYen(value) {
+      return new Intl.NumberFormat('ja-JP', {
+        style: 'currency',
+        currency: 'JPY',
+        maximumFractionDigits: 0,
+      }).format(value);
+    }
+
+    function showError(message) {
+      errorBox.textContent = message;
+      errorBox.classList.remove('hidden');
+    }
+
+    function clearError() {
+      errorBox.textContent = '';
+      errorBox.classList.add('hidden');
+    }
+
+    function readOptionalNonNegativeInt(input) {
+      const raw = input.value.trim();
+      if (raw === '') return null;
+      const n = Number(raw);
+      if (!Number.isFinite(n) || n < 0) return NaN;
+      return Math.round(n);
+    }
+
+    calcBtn.addEventListener('click', () => {
+      clearError();
+
+      const a = readOptionalNonNegativeInt(aInput);
+      const b = readOptionalNonNegativeInt(bInput);
+      const c = readOptionalNonNegativeInt(cInput);
+      const d = readOptionalNonNegativeInt(dInput);
+
+      if (d === null) {
+        showError('賞金を入力してください。');
+        return;
+      }
+
+      if ([a, b, c, d].some(v => Number.isNaN(v))) {
+        showError('0以上の数値を入力してください。');
+        return;
+      }
+
+      const members = [
+        { name: 'I君', investment: a },
+        { name: 'O君', investment: b },
+        { name: 'Y君', investment: c },
+      ].filter(x => x.investment !== null);
+
+      if (members.length < 2) {
+        showError('投資額を入力した人が2人以上必要です。');
+        return;
+      }
+
+      const people = members.length;
+      const sum = members.reduce((acc, cur) => acc + cur.investment, 0);
+      const mean = sum / people;
+      const base = d / people;
+
+      const rawRewards = members.map(m => ({
+        ...m,
+        rewardRaw: base - (mean - m.investment),
+      }));
+
+      const rewardsRounded = rawRewards.map(x => Math.floor(x.rewardRaw));
+      let diff = d - rewardsRounded.reduce((acc, cur) => acc + cur, 0);
+
+      const fractions = rawRewards
+        .map((x, idx) => ({ idx, frac: x.rewardRaw - Math.floor(x.rewardRaw) }))
+        .sort((p, q) => q.frac - p.frac);
+
+      for (let i = 0; i < diff; i++) {
+        rewardsRounded[fractions[i % fractions.length].idx] += 1;
+      }
+
+      const finalResults = members.map((m, idx) => ({
+        ...m,
+        reward: rewardsRounded[idx],
+      }));
+
+      resultPanel.innerHTML = finalResults.map(r => `
+        <div class="result-row">
+          <div>
+            <div class="result-name">${r.name}賞金</div>
+            <div class="result-sub">投資額: ${formatYen(r.investment)}</div>
+          </div>
+          <div class="result-value">${formatYen(r.reward)}</div>
+        </div>
+      `).join('');
+
+      const distributed = finalResults.reduce((acc, cur) => acc + cur.reward, 0);
+      summary.innerHTML = `
+        <div>計算対象人数: ${people}人</div>
+        <div>投資額合計: ${formatYen(sum)}</div>
+        <div>平均投資額: ${formatYen(Math.round(mean))}</div>
+        <div>賞金総額: ${formatYen(d)}</div>
+        <div>分配合計: ${formatYen(distributed)}</div>
+      `;
+
+      inputScreen.classList.add('hidden');
+      resultScreen.classList.remove('hidden');
+    });
+
+    backBtn.addEventListener('click', () => {
+      resultScreen.classList.add('hidden');
+      inputScreen.classList.remove('hidden');
+    });
+  </script>
+</body>
+</html>
