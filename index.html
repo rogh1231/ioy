@@ -233,13 +233,18 @@
         <h1>計算結果</h1>
         
         <div class="panel">
-          <div class="panel-title">全体統計</div>
+          <div class="panel-title">全体集計</div>
           <div class="meta" id="summary"></div>
         </div>
 
         <div class="panel">
           <div class="panel-title">清算の内訳</div>
           <div id="distributionPanel"></div>
+        </div>
+        
+        <div class="panel" id="godCommentPanel">
+          <div class="panel-title">神からのコメント</div>
+          <div class="meta" id="godComment"></div>
         </div>
 
         <button id="backBtn" class="secondary">戻る</button>
@@ -356,6 +361,22 @@
       const averageProfit = (d - totalInvestment) / people;
       const totalProfit = d - totalInvestment;
 
+      let godComment = '';
+      
+      if (averageProfit < -30000) {
+        godComment = `「${Math.round(averageProfit)}円のボロ負けです。神は全てを赦します。」`;
+      } else if (averageProfit < -15000) {
+        godComment = `「${Math.round(averageProfit)}円の負けです。日頃の行いを見直しましょう。」`;
+      } else if (averageProfit < 0) {
+        godComment = `「${Math.round(averageProfit)}円の微負けです。どんまいでした。」`;
+      } else if (averageProfit < 15000) {
+        godComment = `「${Math.round(averageProfit)}円の微勝ちです。おめでとうございます。」`;
+      } else if (averageProfit < 30000) {
+        godComment = `「${Math.round(averageProfit)}円の勝ちです。日頃の行いの賜物です。」`;
+      } else {
+        godComment = `「${Math.round(averageProfit)}円の大勝です。叙々苑おごってください。」`;
+      }
+      
       // 各人の最終的な配分額（合計は換金総額 d）
       const rawTargets = members.map(m => ({
         ...m,
