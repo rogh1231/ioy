@@ -472,8 +472,8 @@
         <div>投資額合計: ${formatYen(totalInvestment)}</div>
         <div>1人あたり平均投資額: ${formatYen(averageInvestment)}</div>
         <div>換金総額: ${formatYen(d)}</div>
-        <div>全体損益: ${totalProfit >= 0 ? '+' : '-'}${formatYen(totalProfit)}</div>
-        <div>1人あたり損益: ${averageProfit >= 0 ? '+' : '-'}${formatYen(averageProfit)}</div>
+        <div>全体損益: <span class="${totalProfit >= 0 ? 'positive' : 'negative'}">${totalProfit >= 0 ? '+' : '-'}${formatYen(totalProfit)}</span></div>
+        <div>1人あたり損益: <span class="${averageProfit >= 0 ? 'positive' : 'negative'}">${averageProfit >= 0 ? '+' : '-'}${formatYen(averageProfit)}</span></div>
       `;
 
       godCommentEl.innerHTML = `<div>${godComment}</div>`;
