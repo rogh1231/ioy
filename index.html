@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>ノリ打ち分配アプリ</title>
+  <title>ノリ打ち精算アプリ</title>
   <style>
     :root {
       --bg: #f4f7fb;
@@ -15,6 +15,8 @@
       --primary-dark: #1d4ed8;
       --muted: #f3f4f6;
       --danger: #dc2626;
+      --positive: #166534;
+      --negative: #991b1b;
     }
 
     * { box-sizing: border-box; }
@@ -36,7 +38,7 @@
 
     .card {
       width: 100%;
-      max-width: 460px;
+      max-width: 640px;
       background: var(--card);
       border-radius: 24px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.08);
@@ -120,41 +122,48 @@
       color: var(--sub);
     }
 
-    .result-row {
+    .person-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+
+    .person-name {
+      font-size: 17px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .detail-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 12px;
-      padding: 12px 0;
+      padding: 8px 0;
       border-bottom: 1px solid var(--line);
     }
 
-    .result-row:last-child {
+    .detail-row:last-child {
       border-bottom: none;
       padding-bottom: 0;
     }
 
-    .result-row:first-child {
-      padding-top: 0;
-    }
-
-    .result-name {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .result-sub {
-      font-size: 12px;
+    .detail-label {
+      font-size: 14px;
       color: var(--sub);
     }
 
-    .result-value {
-      font-size: 20px;
-      font-weight: 800;
+    .detail-value {
+      font-size: 15px;
+      font-weight: 700;
       text-align: right;
       word-break: break-all;
     }
+
+    .positive { color: var(--positive); }
+    .negative { color: var(--negative); }
 
     .error {
       margin-top: 12px;
@@ -175,7 +184,6 @@
     @media (max-width: 380px) {
       .card { padding: 16px; }
       h1 { font-size: 21px; }
-      .result-value { font-size: 18px; }
     }
   </style>
 </head>
@@ -183,53 +191,55 @@
   <div class="wrap">
     <div class="card">
       <div id="inputScreen">
-        <h1>ノリ打ち分配アプリ(※他の人に貸した金額は自分の投資額に加算してね)</h1>
+        <h1>ノリ打ち精算アプリ</h1>
 
         <div class="field">
           <label for="a">I君投資額</label>
-          <input id="a" type="number" inputmode="numeric" min="0" step="1" placeholder="未入力なら計算対象外" />
+          <input id="a" type="number" inputmode="numeric" min="0" step="1" placeholder="例: 4000" />
         </div>
 
         <div class="field">
           <label for="b">O君投資額</label>
-          <input id="b" type="number" inputmode="numeric" min="0" step="1" placeholder="未入力なら計算対象外" />
+          <input id="b" type="number" inputmode="numeric" min="0" step="1" placeholder="例: 5000" />
         </div>
 
         <div class="field">
           <label for="c">Y君投資額</label>
-          <input id="c" type="number" inputmode="numeric" min="0" step="1" placeholder="未入力なら計算対象外" />
+          <input id="c" type="number" inputmode="numeric" min="0" step="1" placeholder="例: 6000" />
         </div>
 
         <div class="field">
-          <label for="d">賞金総額</label>
+          <label for="d">換金総額</label>
           <input id="d" type="number" inputmode="numeric" min="0" step="1" placeholder="例: 21000" />
         </div>
 
-        <button id="calcBtn" class="primary">分配計算実行</button>
+        <button id="calcBtn" class="primary">精算計算実行</button>
         <div id="error" class="error hidden"></div>
 
         <div class="panel">
           <div class="panel-title">計算ルール</div>
           <div class="meta">
-            <div>入力された人だけを対象に計算</div>
-            <div>平均投資額 = 投資額合計 / 人数</div>
-            <div>平均賞金 = 賞金総額 / 人数</div>
-            <div>各人の賞金 = 平均賞金 - (平均投資額 - 各人投資額)</div>
+            <div>全員の損益が同じになるよう計算します</div>
+            <div>入力された人だけを対象に計算します</div>
+            <div>他の人にお金を貸した場合、自分の投資額に加算してください</div>
           </div>
         </div>
 
         <div class="note">
-          2人でも3人でも計算できます。投資額が未入力の人は自動で除外されます。
+          <div>2人でも3人でも計算できます。投資額が未入力の人は自動で除外されます。</div>
         </div>
       </div>
 
       <div id="resultScreen" class="hidden">
         <h1>計算結果</h1>
 
-        <div class="panel" id="resultPanel"></div>
+        <div class="panel">
+          <div class="panel-title">分配結果の内訳</div>
+          <div id="distributionPanel"></div>
+        </div>
 
         <div class="panel">
-          <div class="panel-title">集計</div>
+          <div class="panel-title">補足</div>
           <div class="meta" id="summary"></div>
         </div>
 
@@ -248,7 +258,7 @@
     const errorBox = document.getElementById('error');
     const inputScreen = document.getElementById('inputScreen');
     const resultScreen = document.getElementById('resultScreen');
-    const resultPanel = document.getElementById('resultPanel');
+    const distributionPanel = document.getElementById('distributionPanel');
     const summary = document.getElementById('summary');
 
     function formatYen(value) {
@@ -256,7 +266,11 @@
         style: 'currency',
         currency: 'JPY',
         maximumFractionDigits: 0,
-      }).format(value);
+      }).format(Math.abs(Math.round(value)));
+    }
+
+    function formatSignedYen(value) {
+      return `${value >= 0 ? '+' : '-'}${formatYen(value)}`;
     }
 
     function showError(message) {
@@ -277,6 +291,37 @@
       return Math.round(n);
     }
 
+    function calculateTransfers(targetAmounts) {
+      const payers = targetAmounts
+        .filter(x => x.amount < 0)
+        .map(x => ({ name: x.name, remain: -x.amount }));
+
+      const receivers = targetAmounts
+        .filter(x => x.amount > 0)
+        .map(x => ({ name: x.name, remain: x.amount }));
+
+      const transfers = [];
+      let i = 0;
+      let j = 0;
+
+      while (i < payers.length && j < receivers.length) {
+        const amount = Math.min(payers[i].remain, receivers[j].remain);
+        if (amount > 0) {
+          transfers.push({
+            from: payers[i].name,
+            to: receivers[j].name,
+            amount
+          });
+          payers[i].remain -= amount;
+          receivers[j].remain -= amount;
+        }
+        if (payers[i].remain === 0) i += 1;
+        if (receivers[j].remain === 0) j += 1;
+      }
+
+      return transfers;
+    }
+
     calcBtn.addEventListener('click', () => {
       clearError();
 
@@ -286,7 +331,7 @@
       const d = readOptionalNonNegativeInt(dInput);
 
       if (d === null) {
-        showError('賞金を入力してください。');
+        showError('換金総額を入力してください。');
         return;
       }
 
@@ -307,48 +352,107 @@
       }
 
       const people = members.length;
-      const sum = members.reduce((acc, cur) => acc + cur.investment, 0);
-      const mean = sum / people;
-      const base = d / people;
+      const totalInvestment = members.reduce((acc, cur) => acc + cur.investment, 0);
+      const averageInvestment = totalInvestment / people;
+      const averageProfit = (d - totalInvestment) / people;
+      const totalProfit = d - totalInvestment;
 
-      const rawRewards = members.map(m => ({
+      // 各人の最終的な配分額（合計は換金総額 d）
+      const rawTargets = members.map(m => ({
         ...m,
-        rewardRaw: base - (mean - m.investment),
+        targetRaw: d / people + m.investment - averageInvestment
       }));
 
-      const rewardsRounded = rawRewards.map(x => Math.floor(x.rewardRaw));
-      let diff = d - rewardsRounded.reduce((acc, cur) => acc + cur, 0);
+      const roundedTargets = rawTargets.map(x => Math.floor(x.targetRaw));
+      let diff = d - roundedTargets.reduce((acc, cur) => acc + cur, 0);
 
-      const fractions = rawRewards
-        .map((x, idx) => ({ idx, frac: x.rewardRaw - Math.floor(x.rewardRaw) }))
+      const fractions = rawTargets
+        .map((x, idx) => ({ idx, frac: x.targetRaw - Math.floor(x.targetRaw) }))
         .sort((p, q) => q.frac - p.frac);
 
       for (let i = 0; i < diff; i++) {
-        rewardsRounded[fractions[i % fractions.length].idx] += 1;
+        roundedTargets[fractions[i % fractions.length].idx] += 1;
       }
 
-      const finalResults = members.map((m, idx) => ({
+      const targetAmounts = members.map((m, idx) => ({
         ...m,
-        reward: rewardsRounded[idx],
+        amount: roundedTargets[idx]
       }));
 
-      resultPanel.innerHTML = finalResults.map(r => `
-        <div class="result-row">
-          <div>
-            <div class="result-name">${r.name}賞金</div>
-            <div class="result-sub">投資額: ${formatYen(r.investment)}</div>
-          </div>
-          <div class="result-value">${formatYen(r.reward)}</div>
-        </div>
-      `).join('');
+      // マイナス→プラスへの支払い一覧
+      const transfers = calculateTransfers(targetAmounts);
 
-      const distributed = finalResults.reduce((acc, cur) => acc + cur.reward, 0);
+      const displayData = targetAmounts.map(person => {
+        const incoming = transfers.filter(t => t.to === person.name);
+        const outgoing = transfers.filter(t => t.from === person.name);
+        const incomingTotal = incoming.reduce((sum, t) => sum + t.amount, 0);
+        const outgoingTotal = outgoing.reduce((sum, t) => sum + t.amount, 0);
+
+        // プラスの人だけ、換金からの受取を表示
+        // 「換金からの受取 + 他人からの受取 = 受け取り合計」を一致させる
+        const exchangeReceive = person.amount > 0 ? person.amount - incomingTotal : 0;
+
+        return {
+          ...person,
+          incoming,
+          outgoing,
+          incomingTotal,
+          outgoingTotal,
+          exchangeReceive
+        };
+      });
+
+      distributionPanel.innerHTML = displayData.map(person => {
+        const incomingRows = person.incoming.map(t => `
+          <div class="detail-row">
+            <div class="detail-label">${t.from}からの受取</div>
+            <div class="detail-value positive">${formatYen(t.amount)}</div>
+          </div>
+        `).join('');
+
+        const outgoingRows = person.outgoing.map(t => `
+          <div class="detail-row">
+            <div class="detail-label">${t.to}への支払い</div>
+            <div class="detail-value negative">${formatYen(t.amount)}</div>
+          </div>
+        `).join('');
+
+        const actionRow = person.amount >= 0
+          ? `<div class="detail-row">
+               <div class="detail-label">受け取り合計</div>
+               <div class="detail-value positive">${formatYen(person.amount)}</div>
+             </div>`
+          : `<div class="detail-row">
+               <div class="detail-label">支払い合計</div>
+               <div class="detail-value negative">${formatYen(-person.amount)}</div>
+             </div>`;
+
+        return `
+          <div class="person-card">
+            <div class="person-name">${person.name}</div>
+            <div class="detail-row">
+              <div class="detail-label">投資額</div>
+              <div class="detail-value">${formatYen(person.investment)}</div>
+            </div>
+            ${person.exchangeReceive > 0 ? `
+            <div class="detail-row">
+              <div class="detail-label">換金からの受取</div>
+              <div class="detail-value positive">${formatYen(person.exchangeReceive)}</div>
+            </div>` : ''}
+            ${incomingRows}
+            ${outgoingRows}
+            ${actionRow}
+          </div>
+        `;
+      }).join('');
+
       summary.innerHTML = `
         <div>計算対象人数: ${people}人</div>
-        <div>投資額合計: ${formatYen(sum)}</div>
-        <div>平均投資額: ${formatYen(Math.round(mean))}</div>
-        <div>賞金総額: ${formatYen(d)}</div>
-        <div>分配合計: ${formatYen(distributed)}</div>
+        <div>投資額合計: ${formatYen(totalInvestment)}</div>
+        <div>平均投資額: ${formatYen(averageInvestment)}</div>
+        <div>換金総額: ${formatYen(d)}</div>
+        <div>全体損益: ${totalProfit >= 0 ? '+' : '-'}${formatYen(totalProfit)}</div>
+        <div>1人あたり損益: ${averageProfit >= 0 ? '+' : '-'}${formatYen(averageProfit)}</div>
       `;
 
       inputScreen.classList.add('hidden');
