@@ -264,6 +264,7 @@
     const resultScreen = document.getElementById('resultScreen');
     const distributionPanel = document.getElementById('distributionPanel');
     const summary = document.getElementById('summary');
+    const godCommentEl = document.getElementById('godComment');
 
     function formatYen(value) {
       return new Intl.NumberFormat('ja-JP', {
@@ -474,6 +475,8 @@
         <div>全体損益: ${totalProfit >= 0 ? '+' : '-'}${formatYen(totalProfit)}</div>
         <div>1人あたり損益: ${averageProfit >= 0 ? '+' : '-'}${formatYen(averageProfit)}</div>
       `;
+
+      godCommentEl.innerHTML = `<div>${godComment}</div>`;
 
       inputScreen.classList.add('hidden');
       resultScreen.classList.remove('hidden');
