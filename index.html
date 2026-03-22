@@ -233,12 +233,12 @@
         <h1>計算結果</h1>
         
         <div class="panel">
-          <div class="panel-title">全体集計</div>
+          <div class="panel-title">損益</div>
           <div class="meta" id="summary"></div>
         </div>
 
         <div class="panel">
-          <div class="panel-title">清算の内訳</div>
+          <div class="panel-title">清算内訳</div>
           <div id="distributionPanel"></div>
         </div>
         
@@ -468,9 +468,9 @@
       }).join('');
 
       summary.innerHTML = `
-        <div>計算対象人数: ${people}人</div>
+        <div>人数: ${people}人</div>
         <div>投資額合計: ${formatYen(totalInvestment)}</div>
-        <div>平均投資額: ${formatYen(averageInvestment)}</div>
+        <div>1人あたり平均投資額: ${formatYen(averageInvestment)}</div>
         <div>換金総額: ${formatYen(d)}</div>
         <div>全体損益: ${totalProfit >= 0 ? '+' : '-'}${formatYen(totalProfit)}</div>
         <div>1人あたり損益: ${averageProfit >= 0 ? '+' : '-'}${formatYen(averageProfit)}</div>
