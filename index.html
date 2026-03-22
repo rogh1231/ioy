@@ -213,7 +213,7 @@
           <input id="d" type="number" inputmode="numeric" min="0" step="1" placeholder="例: 21000" />
         </div>
 
-        <button id="calcBtn" class="primary">精算計算実行</button>
+        <button id="calcBtn" class="primary">計算実行</button>
         <div id="error" class="error hidden"></div>
 
         <div class="panel">
@@ -221,12 +221,12 @@
           <div class="meta">
             <div>全員の損益が同じになるよう計算します</div>
             <div>入力された人だけを対象に計算します</div>
-            <div>他の人にお金を貸した場合、自分の投資額に加算してください</div>
           </div>
         </div>
 
         <div class="note">
           <div>2人でも3人でも計算できます。投資額が未入力の人は自動で除外されます。</div>
+          <div>他の人にお金を貸した場合、自分の投資額に加算してください。</div>
         </div>
       </div>
 
@@ -234,7 +234,7 @@
         <h1>計算結果</h1>
 
         <div class="panel">
-          <div class="panel-title">分配結果の内訳</div>
+          <div class="panel-title">清算の内訳</div>
           <div id="distributionPanel"></div>
         </div>
 
